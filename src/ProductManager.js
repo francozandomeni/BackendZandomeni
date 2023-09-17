@@ -1,5 +1,5 @@
-const fs = require("fs")
-const { title, connected } = require("process")
+import fs from "fs" 
+
 
 class ProductManager {
 
@@ -27,7 +27,8 @@ class ProductManager {
             } else {
                 id = pedirProductos[pedirProductos.length-1].id+1
             }
-            pedirProductos.push({id,...obj})
+            const newProduct = {id,...obj}
+            pedirProductos.push(newProduct)
             await fs.promises.writeFile(this.path,JSON.stringify(pedirProductos))
             
         } catch (error) {
@@ -59,12 +60,8 @@ class ProductManager {
         //debe recibir un id y tras leer el archivo debe buscar el producto con el id especificado y devolverlo en formato objeto
         try {
             const pedirProductos = await this.getProducts()
-            const producto =  pedirProductos.find(e => e.id === idProducto)
-            if(producto){
-                return producto
-            } else {
-                return console.log("El producto no existe")
-            }
+            const producto =  pedirProductos.find(e => e.id === parseInt(idProducto))
+            return producto
             
         } catch (error) { 
             return error
@@ -117,52 +114,26 @@ class ProductManager {
 }
 
 
-const producto1 = {
-        title: "Producto 1",
-        description: "Descripcion 1",
-        price: 15.99,
-        thumbnail: "imagen1.jpg",
-        code: "F0001",
-        stock: 30,
-}
 
-const producto2 = {
-    title: "Producto 2",
-    description: "Descripcion 2",
-    price: 17.99,
-    thumbnail: "imagen2.jpg",
-    code: "F0002",
-    stock: 50,
-}
 
-const producto3 = {
-    title: "Producto 3",
-    description: "Descripcion 3",
-    price: 20.99,
-    thumbnail: "imagen3.jpg",
-    code: "F0003",
-    stock: 70,
-}
+// const producto2 = {
+//     title: "Producto 2",
+//     description: "Descripcion 2",
+//     price: 17.99,
+//     thumbnail: "imagen2.jpg",
+//     code: "F0002",
+//     stock: 50,
+// }
+
+// const producto3 = {
+//     title: "Producto 3",
+//     description: "Descripcion 3",
+//     price: 20.99,
+//     thumbnail: "imagen3.jpg",
+//     code: "F0003",
+//     stock: 70,
+// }
 
 
 
-async function test() {
-    const manager1 = new ProductManager("Users.json")
-    // await manager1.addProduct(producto1)
-
-    // const prueba = await manager1.getProducts()
-    // console.log(prueba);
-
-    // const producto = await manager1.getProductById()
-    // console.log(producto)
-
-    // await manager1.deleteProduct(1)
-    // const producto = await manager1.getProducts()
-    // console.log(producto)
-
-    // const producto = await manager1.updateProduct(2, {code: "K0002"})
-    // console.log(producto)
-    
-
-}
-test()
+export const productsManager = new ProductManager('Users.json')
