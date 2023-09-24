@@ -1,9 +1,8 @@
 import fs from "fs";
-import { userInfo } from "os";
 
 
 
-class ProductManager {
+class CartManager {
 
 
 
@@ -11,25 +10,32 @@ class ProductManager {
         this.path = path
     }
 
-    async addProduct(obj) {
+    async addToCart(obj) {
         //Debe recibir un objeto con el formato previamente especificado, asignarle un id autoincrementable y guardarlo en el arreglo (recordar siempre guardarlo como un array en el archivo)
-         const { title, description, price, thumbnail, code, stock } = obj
-         if (!title || !description || !price || !thumbnail || !code || !stock) {
+         const { title, description, price, thumbnail, code, quantity } = obj
+
+         if (!title || !description || !price || !thumbnail || !code || !quantity) {
              return console.log("Faltan campos obligatorios")
          }
 
-        try {
-            const pedirProductos = await this.getProducts()
+        try { console.log("comienzo")
+            const askCarrito = await this.getCart()
+
             let id
-            if (!pedirProductos.length) {
+            if (!askCarrito.length) {
+                console.log("if")
                 id = 1
             } else {
-                id = pedirProductos[pedirProductos.length - 1].id + 1
+                console.log("else")
+                id = askCarrito[askCarrito.length - 1].id + 1
             }
-            const newProduct = { id, ...obj }
-            pedirProductos.push(newProduct)
-            await fs.promises.writeFile(this.path, JSON.stringify(pedirProductos))
-            return newProduct
+
+            const newCart = { id, ...obj }
+            console.log("carrito cargado")
+            askCarrito.push(newCart)
+            console.log("carrito nuevo")
+            await fs.promises.writeFile(this.path, JSON.stringify(askCarrito))
+            return newCart
         } catch (error) {
             return error
         }
@@ -38,14 +44,13 @@ class ProductManager {
 
 
 
-    async getProducts(queryObj) {
+    async getCart() {
         //Debe leer el archivo de productos y devolver todos los productos en formato de arreglo
-            const {limit} = queryObj
+            
         try {
             if (fs.existsSync(this.path)) {
-                const info = await fs.promises.readFile(this.path, 'utf-8')
-                const productsArray = JSON.parse(info)
-                return limit ? productsArray.slice(0,limit) : productsArray
+                const info = await fs.promises.readFile(this.path, 'utf-8')                
+                return JSON.parse(info)
 
             } else {
                 return []
@@ -80,14 +85,18 @@ class ProductManager {
 
         try {
             const pedirProductos = await this.getProducts()
-            const producto = pedirProductos.findIndex(p => p.id === idProducto)
-            if(index===-1) {
-                return -1
-            }
-            const pedirProducto = producto[index]
-            pedirProductos[index] = {...userInfo, ...obj}
-            await fs.promises.writeFile(this.path, JSON.stringify(producto))
-            return 1
+            const producto = await this.getProductById(idProducto)
+
+            if (!producto) console.log("Producto no encontrado")
+
+            const productoActualizado = { ...producto, ...obj }
+
+            const arrayActualizado = pedirProductos.map((p) => p.id === (idProducto) ? productoActualizado : p)
+
+            await fs.promises.writeFile(this.path, JSON.stringify(arrayActualizado))
+
+            return console.log("Producto actualizado")
+
 
         } catch (error) {
             return error
@@ -101,27 +110,28 @@ class ProductManager {
 
         try {
             const pedirProductos = await this.getProducts()
-            const pedirProducto = pedirProductos.find(p => p.id === idProducto)
-            if(!pedirProducto){
-                return -1
-            }
             const nuevoArrayProductos = pedirProductos.filter(p => p.id !== idProducto)
             await fs.promises.writeFile(this.path, JSON.stringify(nuevoArrayProductos))
-            return 1
         } catch (error) {
-            return error
 
         }
     }
 
-
+    
 }
 
- export const productsManager = new ProductManager("./products.json")
+const product1 = {
+    title:"Product 1",description:"Description 1",price:15.99,thumbnail:"image1.jpg",code:"P001",quantity:30
+}
+
+
+export const cartManager = new CartManager("./carrito.json")
 
 // async function test() {
-//     const productsManager = new ProductManager('../products.json')
-//     await productsManager.addProduct(product5)
-
+//     const manager = new CartManager('./carrito.json')
+//     await manager.addToCart(product1)
 // }
+
+
+
 
