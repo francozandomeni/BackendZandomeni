@@ -10,128 +10,141 @@ class CartManager {
         this.path = path
     }
 
-    async addToCart(obj) {
-        //Debe recibir un objeto con el formato previamente especificado, asignarle un id autoincrementable y guardarlo en el arreglo (recordar siempre guardarlo como un array en el archivo)
-         const { title, description, price, thumbnail, code, quantity } = obj
-
-         if (!title || !description || !price || !thumbnail || !code || !quantity) {
-             return console.log("Faltan campos obligatorios")
-         }
-
-        try { console.log("comienzo")
-            const askCarrito = await this.getCart()
-
+    async createCart() {
+        try {
+            const carts = await this.getCarts()
             let id
-            if (!askCarrito.length) {
-                console.log("if")
+            let products
+            if (!carts.length) {
                 id = 1
-            } else {
-                console.log("else")
-                id = askCarrito[askCarrito.length - 1].id + 1
+                products = []
+                const newCart = { id, products }
+                carts.push(newCart)
+                await fs.promises.writeFile(this.path, JSON.stringify(carts))
+                return newCart
             }
-
-            const newCart = { id, ...obj }
-            console.log("carrito cargado")
-            askCarrito.push(newCart)
-            console.log("carrito nuevo")
-            await fs.promises.writeFile(this.path, JSON.stringify(askCarrito))
-            return newCart
+            else {
+                id = carts[carts.length - 1].id + 1
+                products = []
+                const newCart = { id, products }
+                carts.push(newCart)
+                await fs.promises.writeFile(this.path, JSON.stringify(carts))
+                return newCart
+            }
         } catch (error) {
-            return error
+            error
         }
-
     }
 
 
 
-    async getCart() {
-        //Debe leer el archivo de productos y devolver todos los productos en formato de arreglo
+    async getCartsFromFile() {
+
+        try {
+            if (!fs.existsSync(this.path)) {
+                const carts = []
+
+                await fs.promises.writeFile(this.path, JSON.stringify(carts))
+                return carts
+            }
+
+            const info = await fs.promises.readFile(this.path, 'utf-8')
+            return JSON.parse(info)
+        } catch (error) {
+            return error
+
+        }
+
+    }
+
+    async getCarts(limit) {
+        try {
+            const carts = await this.getCartsFromFile();
+
+            return carts.slice(0, limit);
+        } catch (error) {
+            return error;
+        }
+    }
+
+    async getCartById(cid) {
+
+
+        try {
+            const carts = await this.getCarts()
+            const cartFound = carts.find((e) => e.id === parseInt(cid))
+            if (cartFound) {
+                return cartFound
+            } else {
+                return null
+
+            }
+
+
+        } catch (error) {
+            throw error
+        }
+
+
+    }
+
+    async addProductToCartById(idCart, idProducto) {
+        try {
+            console.log("idCart:", idCart);
+            console.log("idProducto:", idProducto);
+
+            const carts = await this.getCarts();
+            console.log("carts:", carts);
+
+            let cart = { ...(await this.getCartById(idCart)) };
+            console.log("cart:", cart);
             
-        try {
-            if (fs.existsSync(this.path)) {
-                const info = await fs.promises.readFile(this.path, 'utf-8')                
-                return JSON.parse(info)
+            cart.products = cart.products || []
 
+            const productIndex = cart.products.findIndex((product) => product.product === +idProducto);
+
+            if (productIndex === -1) {
+                cart.products.push({
+                    product: +idProducto,
+                    quantity: 1,
+                });
             } else {
-                return []
+                cart.products[productIndex].quantity += 1;
             }
 
+            const cartIndex = carts.findIndex((cart) => cart.id === +idCart);
+
+            carts[cartIndex] = cart;
+
+            await fs.promises.writeFile(this.path, JSON.stringify(carts))
+            const result =  "Products added"
+
+            console.log("result:", result);
+            return result;
         } catch (error) {
-            return error
-
-        }
-
-    }
-
-    async getProductById(idProducto) {
-        //debe recibir un id y tras leer el archivo debe buscar el producto con el id especificado y devolverlo en formato objeto
-        try {
-            const pedirProductos = await this.getProducts({})
-            const producto = pedirProductos.find(e => e.id === parseInt(idProducto))
-            return producto
-
-        } catch (error) {
-            return error
-        }
-
-
-    }
-
-
-    async updateProduct(idProducto, obj) {
-        //debe recibir el id del producto a actualizar, asi tambien como el campo a actualizar(puede ser el objeto completo como en una DB), y debe actualizar el producto que tenga ese id en el archivo. NO DEBE BORRASE SU ID
-
-
-
-        try {
-            const pedirProductos = await this.getProducts()
-            const producto = await this.getProductById(idProducto)
-
-            if (!producto) console.log("Producto no encontrado")
-
-            const productoActualizado = { ...producto, ...obj }
-
-            const arrayActualizado = pedirProductos.map((p) => p.id === (idProducto) ? productoActualizado : p)
-
-            await fs.promises.writeFile(this.path, JSON.stringify(arrayActualizado))
-
-            return console.log("Producto actualizado")
-
-
-        } catch (error) {
-            return error
-        }
-
-    }
-
-    async deleteProduct(idProducto) {
-
-        // debe recibir un id y eliminar el producto que tenga ese id en el archivo
-
-        try {
-            const pedirProductos = await this.getProducts()
-            const nuevoArrayProductos = pedirProductos.filter(p => p.id !== idProducto)
-            await fs.promises.writeFile(this.path, JSON.stringify(nuevoArrayProductos))
-        } catch (error) {
-
+            console.error("Error writing cart data to file:", error);
+             throw new Error("Product could not be added");
         }
     }
 
-    
 }
 
-const product1 = {
-    title:"Product 1",description:"Description 1",price:15.99,thumbnail:"image1.jpg",code:"P001",quantity:30
-}
+
 
 
 export const cartManager = new CartManager("./carrito.json")
 
-// async function test() {
-//     const manager = new CartManager('./carrito.json')
-//     await manager.addToCart(product1)
+// const product5 = {
+//     title: "Product 5", description: "Description 5", price: 13.99, thumbnail: "image5.jpg", code: "P005", quantity: 35
 // }
 
+
+
+// async function test() {
+//     const manager = new CartManager('./carrito.json')
+//     await manager.addToCart(product5)
+// }
+// test()
 
 
 
