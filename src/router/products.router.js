@@ -21,11 +21,11 @@ router.get("/", async (req, res) => {
 })
 
 
-router.get('/:idProducto', async (req, res) => {
-    const { idProducto } = req.params
+router.get('/:pid', async (req, res) => {
+    const { pid } = req.params
     try {
-        const productId = parseInt(idProducto)
-        const product = await productsManager.getProductById(+idProducto)
+        const productId = parseInt(pid)
+        const product = await productsManager.getProductById(+pid)
         if (!product) {
             res.status(400).json({ message: "Product with that id number not found" })
         } else {
@@ -47,10 +47,10 @@ router.post("/", async (req, res) => {
     }
 })
 
-router.delete("/:idProducto", async (req, res) => {
-    const { idProducto } = req.params
+router.delete("/:pid", async (req, res) => {
+    const { pid } = req.params
     try {
-        const response = await productsManager.deleteProduct(+idProducto)
+        const response = await productsManager.deleteProduct(+pid)
         if (response === -1) {
             res.status(400).json({ message: "user not found with de id sent" })
         } else {
@@ -62,10 +62,10 @@ router.delete("/:idProducto", async (req, res) => {
     }
 })
 
-router.put("/:idProducto", async (req, res) => {
-    const {idProducto} = req.params 
+router.put("/:pid", async (req, res) => {
+    const {pid} = req.params 
     try {
-        const response = await usersManager.updateProduct(+idProducto, req.body)
+        const response = await usersManager.updateProduct(+pid, req.body)
         if (response === -1) {
             res.status(400).json({ message: "user not found with de id sent" })
         } else {

@@ -1,5 +1,5 @@
 import fs from "fs";
-import { userInfo } from "os";
+
 
 
 
@@ -14,6 +14,7 @@ class ProductManager {
     async addProduct(obj) {
         //Debe recibir un objeto con el formato previamente especificado, asignarle un id autoincrementable y guardarlo en el arreglo (recordar siempre guardarlo como un array en el archivo)
          const { title, description, price, thumbnail, code, stock } = obj
+         
          if (!title || !description || !price || !thumbnail || !code || !stock) {
              return console.log("Faltan campos obligatorios")
          }
@@ -58,11 +59,11 @@ class ProductManager {
 
     }
 
-    async getProductById(idProducto) {
+    async getProductById(pid) {
         //debe recibir un id y tras leer el archivo debe buscar el producto con el id especificado y devolverlo en formato objeto
         try {
             const pedirProductos = await this.getProducts({})
-            const producto = pedirProductos.find(e => e.id === parseInt(idProducto))
+            const producto = pedirProductos.find(e => e.id === parseInt(pid))
             return producto
 
         } catch (error) {
@@ -73,19 +74,19 @@ class ProductManager {
     }
 
 
-    async updateProduct(idProducto, obj) {
+    async updateProduct(pid, obj) {
         //debe recibir el id del producto a actualizar, asi tambien como el campo a actualizar(puede ser el objeto completo como en una DB), y debe actualizar el producto que tenga ese id en el archivo. NO DEBE BORRASE SU ID
 
 
 
         try {
             const pedirProductos = await this.getProducts()
-            const producto = pedirProductos.findIndex(p => p.id === idProducto)
+            const producto = pedirProductos.findIndex(p => p.id === pid)
             if(index===-1) {
                 return -1
             }
             const pedirProducto = producto[index]
-            pedirProductos[index] = {...userInfo, ...obj}
+            pedirProducto[index] = {...userInfo, ...obj}
             await fs.promises.writeFile(this.path, JSON.stringify(producto))
             return 1
 
@@ -95,17 +96,17 @@ class ProductManager {
 
     }
 
-    async deleteProduct(idProducto) {
+    async deleteProduct(pid) {
 
         // debe recibir un id y eliminar el producto que tenga ese id en el archivo
 
         try {
             const pedirProductos = await this.getProducts()
-            const pedirProducto = pedirProductos.find(p => p.id === idProducto)
+            const pedirProducto = pedirProductos.find(p => p.id === pid)
             if(!pedirProducto){
                 return -1
             }
-            const nuevoArrayProductos = pedirProductos.filter(p => p.id !== idProducto)
+            const nuevoArrayProductos = pedirProductos.filter(p => p.id !== pid)
             await fs.promises.writeFile(this.path, JSON.stringify(nuevoArrayProductos))
             return 1
         } catch (error) {
